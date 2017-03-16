@@ -36,7 +36,7 @@ class WraprModelRepository implements WraprModelInterface {
 	public function addModel ( $args )  {
             
             $sql = "insert into wrapr_modelinfo ('model_id','model_name') values ( ?, ?)";
-            //echo 'test';
+            echo 'test';
             $this->db->prepare($sql);
             
             $this->db->bind_param( "is", 1, 'test' );

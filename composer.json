@@ -2,7 +2,7 @@
 	"name": "abcflorida/fxwrapr",
 	"type": "library",
 	"description": "first whack at a contained package for new wrapr",
-        "version": "2.0.1",
+        "version": "3.0.1",
 	"authors": [
 		{
 			"name": "Brian",
