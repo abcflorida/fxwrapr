@@ -10,6 +10,7 @@
  *
  * @author Brian @ Florida Web Design
  */
+namespace Abcflorida\Fxwrapr\Interfaces;
 
 interface WraprModelInterface {
 	
