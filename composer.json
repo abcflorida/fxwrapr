@@ -1,0 +1,28 @@
+{
+	"name": "abcflorida/fxwrapr",
+	"type": "library",
+	"description": "first whack at a contained package for new wrapr",
+        "version": "2.0.1",
+	"authors": [
+		{
+			"name": "Brian",
+			"email": "flbrianc@gmail.com"
+		}
+	],
+	"repositories": [
+		{
+			"type": "composer",
+			"url": "https://github.com/abcflorida/fxwrapr.git"
+		}
+	],
+	"require": {
+		
+	},
+	"autoload": {
+		"psr-4": {
+			"Abcflorida\\Fxwrapr\\": "src/"
+		}
+	},
+	"minimum-stability": "stable",
+	"prefer-stable": true
+}
