@@ -35,17 +35,17 @@ class WraprModelRepository implements WraprModelInterface {
 	*/
 	public function addModel ( $args )  {
             
-            $sql = "insert into wrapr_modelinfo ('model_id','model_name') values ( ?, ?)";
-            echo 'test';
-            $this->db->prepare($sql);
+            $sql = "insert into wrapr_modelinfo ( model_id, model_name ) values ( ?, ?)";
+            //echo 'test';
+            $stmt = $this->db->prepare($sql);
             
-            $this->db->bind_param( "is", 1, 'test' );
+            $stmt->bind_param( "is", 1, 'test' );
             
             /* Execute the statement */
-            $this->db->execute();
+            $stmt->execute();
             
-            if ($this->db->error) {
-               printf("Errormessage: %s\n", $this->db->error);
+            if ($stmt->error) {
+               printf("Errormessage: %s\n", $stmt->error);
             }
                
 

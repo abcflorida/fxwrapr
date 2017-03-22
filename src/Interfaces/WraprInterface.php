@@ -9,6 +9,8 @@
  *
  * This source file is subject to the Florida Web Design PSL License that is
  * bundled with this package in the LICENSE file.
+ * 
+ * In this interface, the db may be tightly coupled to the business logic because it makes sense at this point for ease of implementation
  *
  * @package    fxwrapr
  * @version    1.0.1
@@ -20,7 +22,51 @@
 
 namespace  Abcflorida\Fxwrapr\Interfaces;
 
+
+/** Main wrapr table - snowmobile, motobike, utv
+ * Site_ID is important so that we know which site stores what wraprs.  This is not critical for this version because we are only supporting one site, but in order to scale for utv and moto this is important
+ * 
+*/
 interface WraprInterface {
+    
+    /** add a wrapr
+     * 
+     * @param type $args  `id`- ai,`site_id, `wrapr_name`, `wrapr_vehicle`,`wrapr_layers`, -- not needed?? `active`, `style`, `instructions_base`,`icon`,`deleted`,`friendly_name`,`file_prefix`,`wrapr_key_name`
+     */
+    public function addWrapr ( $args );
+    
+    
+    /** update values
+     * 
+     * @param type $wrapr_id
+     * @param type $args `site_id, `wrapr_name`, `wrapr_vehicle`,`wrapr_layers`, -- not needed?? `active`, `style`, `instructions_base`,`icon`,`deleted`,`friendly_name`,`file_prefix`,`wrap_key_name`
+     */
+    public function updateWrapr ( $wrapr_id, $args );
+    
+    
+    /** removeWrapr - no hard deletes
+     * Set the activeflag = 0
+     * @param type $wrapr_id
+     */
+    public function removeWrapr ( $wrapr_id );
+    
+    
+    /** get wrapr by id
+     * 
+     * @param type $wrapr_id
+     */
+    public function getWrapr ( $wrapr_id );
+    
+    /** get wraprs by site_id
+     * 
+     * @param type $site_id
+     */
+    public function getWraprs ( $site_id );
+    
+}
+
+
+interface WraprMfgInterface {
 
 	/** Add manufacturer 
 	* @param array $args includes `mf_id`, `wrapr_id`, `mf_name`, `isMenuItem`, `isAffiliateItem`, `sort_order` 
@@ -38,6 +84,10 @@ interface WraprInterface {
 	*/
 	public function deleteMfg ( $mfg_id );
 	
+        /**
+         * 
+         * @param int $wrapr_id
+         */
 	public function getMfgs ( $wrapr_id );
 }
 
@@ -47,10 +97,39 @@ interface WraprModel {
 	* @param array $args includes name, friendly_name, sort_order, `id`, `wrapr_id`, `mf_id`, `model_name`, `meta_desc`, `page_desc`, `search_tags`, `sub_models`, `active`, `model_nameclean`, `sort_order`, `model_friendly`
 	*/
 	public function addModel ( $args ); 
+        
+        /**
+         * 
+         * @param int $model_id
+         * @param array $args
+         */
 	public function updateModel ( $model_id, $args );
+        
+        /** soft deletes a model
+         * 
+         * @param int $model_id
+         */
 	public function deleteModel ( $model_id );
-	public function getAllModels ( );
-	public function searchModel ( $search );
+        
+        /** returns model from model_id or name
+         * 
+         * @param int $arg if is_int than its a model_id else its a name.  Probably need to do safe search on string.
+         */
+        public function getModel ( $arg );
+        
+        /** returns array of models
+         * @param int $wrapr_id the wrapr_id of the app
+         * @return array all model ids, and name "model_id","model_name_friendly","model_name","active"
+         */
+	public function getModelsByWrapr ( $wrapr_id );
+        
+        /**
+         * 
+         * @param int $mf_id
+         */
+        public function getModelByManufacturer ( $mf_id );
+        
+        
 	public function searchModelJson ( $search );
 	
 	/** Remove all the designs linked to this model - typically used when resetting, or deleting a model 
@@ -58,6 +137,184 @@ interface WraprModel {
 	*/
 	public function removeDesignsForModel ( $model_id );
 }
+
+
+/* wraprsubmodel 
+ * Submodel consists of excluded layers, active, date, tracklength.  model_id is the foreign key for this model
+ *  */
+interface WraprSubmodel {
+
+        /** add submodel "model_id, submodel_name, submodel_name_friendly
+	public function addSubmodel ( $args );
+	
+	public function updateSubmodel ( $submodel_id, $args );
+	
+	public function removeSubModel ( $submodel_id );
+	
+        /** appends year to the list with a delimiter.  
+         * Delimiter can be specified and that will be used to separate the years in the databasae.  The an adapter will turn it into json
+         * @param int $submodel_id
+         * @param string @args should include $years as an array or a list with the added param $delimiter
+         * @returns true or error message true|"error processing request : year is not valid"
+        */
+	public function addYearToSubmodel ( $submodel_id, $args );
+	
+        /** add a color to all the submodel layers available or just one 
+         * @param int $submodel_id pk
+         * @param int $layer_id 
+         * @param string $colors list of colorids  
+         *          */
+	public function excludeColorsFromPalette( $submodel_id, $layer_id, $colors );
+	
+        /** copySubmodelExclusions copies all the layers from the selected submodel to the new submodel
+         * 
+         * @param int $submodel_id
+         * @param int $copy_submodel_id
+        */
+	public function copySubmodelExclusions ( $submodel_id, $copy_submodel_id );
+	
+}
+
+
+interface WraprSubmodelYears {
+
+	/** addSubmodelYear
+         * 
+         * @param int $submodel_id
+         * @param int $year_id
+         */
+        public function addSubmodelYear ( $submodel_id, $year_id );
+        
+        /**
+         * 
+         * @param int $submodel_id
+         * @param int $year_id
+         */
+	public function removeSubmodelYear ( $submodel_id, $year_id );
+	
+	/** this is only created if there is an exclusion for the layer 
+	* @param int $submodel_id
+	* @param int $year_id
+	* @param int $layer_id
+	* @returns boolean
+	*/
+	public function addSubmodelYearLayer ( $submodel_id, $year_id, $layer_id );
+	
+	/** this is only needed if there is an exclusion added to the submodel year for a layer in the design
+	* @param int $submodel_id
+	* @param int $year_id
+	* @param int $layer_id
+	* @returns boolean T|Error
+	*/
+	public function removeSubmodelYearLayer ( $submodel_id, $year_id, $layer_id );
+	
+	/** Gets the years that are assigned to the submodel.  This is for generating select and info boxes 
+	* @param int $submodel_id
+	* @return array
+	*/
+	public function getYearsForSubmodel ( $submodel_id );
+	
+	/** update the year value for a submodel
+	public function updateYear
+	public function removeYear
+
+	/** returns the color exclusions for the submodel_layer combination
+	* @param int $submodel_id
+	* @param int $layer_id 
+	* returns array 
+	*/
+	public function getSubmodelYearExclusions ( $submodel_id, $layer_id );
+}
+
+
+/** WraprLayer is part of a colorway - colorway is the total layer/color that make up a design
+ * Wrapr layers represent the potential layer available for the design to store.  So, a design may have panel layers, design layers and logo layers.  There may be 
+ * 4 panel layers, 4 design layers, and 1 logo layer ( based on submodel_year ).  The wrapr must have at least 9 layers to represent this model/design configuration.
+ */
+interface WraprLayer {
+    
+        /** add a layer to the wrapr
+         * 
+         * @param array $args is an array including layer_name, layer_name_friendly,layer_type, active.
+         */
+	public function addLayer ( $args );
+        
+        /** update the layer information
+         * layer_type is either image, static, or dynamic.  In this version we are not going to save the images dynamically, but we need to be able to distinguish between
+         * the logo layers and others so layer_type is still required.  Please it will make upgrading easier in the future
+         * 
+         * @param int $layer_id
+         * @param array $args
+         */
+	public function updateLayer ( $layer_id, $args );
+        
+        /** soft deletes a layer
+         * 
+         * @param type $layer_id
+         */
+	public function deleteLayer ( $layer_id );
+        
+        /** assigns hasMany relationship 
+         * 
+         * @param int $layer_id
+         * @param int $design_id
+         */
+	public function assignLayerToDesign ( $layer_id, $design_id );
+        
+        /** Soft delete the layer from the design
+         * 
+         * @param int $layer_id
+         * @param int $design_id
+         */
+	public function removeLayerFromDesign ( $layer_id, $design_id );
+        
+        /** returns the layers assigned to a wrapr 
+         * "wrapr_name, layer_name, layer_friendly_name, active, last_update_dt".
+         * return array 
+         * 
+        */
+        public function getLayers ( $wrapr_id ); 
+}
+
+
+interface WraprSubmodelLayer {
+
+	public function addSubmodelLayer ( $args );
+	
+	public function removeSubmodelLayer ( $submodel_id, $layer_id );
+	
+	public function updateSubmodelLayer( $submodelid, $layer_id, $colors );
+}
+
+interface WraprSubmodelYear {
+    
+    /** add submodel year - this is the entity that relates to the pallete at the most granular level
+     * 
+     * @param array $args "submodel_id, year, active "
+     */
+    public function addSubmodelYear ( $args );
+    
+    /** 
+     * 
+     * @param int $submodel_year_id
+     * @param array $args
+     */
+    public function updateSubmodelYear ( $submodel_year_id, $args );
+    
+    /** softdelete the submodel year
+     * 
+     * @param int $submodel_year_id
+     * @param array $args
+     */
+    public function removeSubmodelYear ( $submodel_year_id, $args );
+    
+}
+
+interface WraprSubmodelYearLayer { 
+    
+    
+}
+
 
 interface WraprDesign {
 	
@@ -86,8 +343,8 @@ interface WraprDesign {
 	* @param int $design_id
 	* @param int $layer_id
 	* @param int $layer_order
-	* /
-	public function addLayerToDesign ( $design_id, $layer_id, $layer_order );
+	*/
+        public function addLayerToDesign ( $design_id, $layer_id, $layer_order );
 	
 	/** Removes layer from design 
 	* 
@@ -110,78 +367,6 @@ interface WraprDesign {
 	public function getAllDesigns ( );
 	public function searchDesigns ( $search );
 	public function searchDesignslJson ( $search );
-}
-
-interface WraprLayer {
-	public function addLayer ( $args );
-	public function updateLayer ( $layer_id, $args );
-	public function deleteLayer ( $layer_id );
-	public function assignLayerToDesign ( $layer_id, $design_id );
-	public function removeLayerFromDesign ( $layer_id, $design_id );
-}
-
-interface SubmodelYears {
-
-	public function addSubmodelYear ( $submodel_id, $year_id );
-	public function removeSubmodelYear ( $submodel_id, $year_id );
-	
-	/** this is only created if there is an exclusion for the layer 
-	* @param int $submodel_id
-	* @param int $year_id
-	* @param int $layer_id
-	* @returns boolean
-	*/
-	public function addSubmodelYearLayer ( $submodel_id, $year_id, $layer_id );
-	
-	/** this is only needed if there is an exclusion added to the submodel year for a layer in the design
-	* @param int $submodel_id
-	* @param int $year_id
-	* @param int $layer_id
-	* @returns boolean T|F
-	*/
-	public function removeSubmodelYearLayer ( $submodel_id, $year_id, $layer_id );
-	
-	/** Gets the years that are assigned to the submodel.  This is for generating select and info boxes 
-	* @param int $submodel_id
-	* @return array
-	*/
-	public function getYearsForSubmodel ( $submodel_id );
-	
-	/** update the year value for a submodel
-	public function updateYear
-	public function removeYear
-
-	/** returns the color exclusions for the submodel_layer combination
-	* @param int $submodel_id
-	* @param int $layer_id 
-	* returns array 
-	*/
-	public function getSubmodelYearExclusions ( $submodel_id, $layer_id );
-}
-
-interface WraprSubmodel {
-
-	public function addSubmodel ( $args );
-	
-	public function updateSubmodel ( $submodel_id, $args );
-	
-	public function removeSubModel ( $submodel_id );
-	
-	// public function addYearToSubmodel ( $submodel_id, args );
-	
-	public function excludeColorsFromPalette( $submodel_id, $layer_id, $colors );
-	
-	public function copySubmodelExclusions ( $submodel_id, $copy_submodel_id );
-	
-}
-
-interface WraprSubmodelLayer {
-
-	public function addSubmodelLayer ( $args );
-	
-	public function removeSubmodelLayer ( $submodel_id, $layer_id );
-	
-	public function updateSubmodelLayer( $submodelid, $layer_id, $colors );
 }
 
 interface WraprApp {
