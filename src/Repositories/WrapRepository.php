@@ -8,7 +8,7 @@
  * Licensed under the Florida Web Design PSL License.
  *
  * This source file is subject to the Florida Web Design PSL License that is
- * bundled with this package in the LICENSE file.
+ * bundled with this package in the LICENSE file. This is in feature mode
  *
  * @package    type here
  * @version    1.0.1
