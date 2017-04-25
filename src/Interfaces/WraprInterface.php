@@ -63,10 +63,10 @@ interface WraprInterface {
     
     /** get wraprs by site_id
      * 
-     * @param int $site_id
+     * @param int $args [site_id, sort array { name, dir ), 
      * @return array|Exception
      */
-    public function getWraprs ( $site_id );
+    public function getWraprs ( $args );
     
 }
 
@@ -99,7 +99,7 @@ interface WraprMfgInterface {
          * @param int $wrapr_id
          * @return array|Exception
          */
-	public function getMfgs ( $wrapr_id );
+	public function getMfgs ( $wrapr_id, $args );
 }
 
 interface WraprModel {
@@ -134,9 +134,10 @@ interface WraprModel {
         
         /** returns array of models
          * @param int $wrapr_id the wrapr_id of the app
-         * @return array|Exception all model ids, and name "model_id","model_name_friendly","model_name","active"
+         * @return array|Exception all model ids, and name "model_id","model_name_friendly","model_name","active","paging","rowsperpage","offset"
+         * 
          */
-	public function getModelsByWrapr ( $wrapr_id );
+	public function getModelsByWrapr ( $wrapr_id, $args );
         
         /** returns array of models by manufacturer
          * Pass in arguments for sorting, filtering
@@ -149,14 +150,16 @@ interface WraprModel {
         /* search model by name or year 
          * Pass params in for wildcard search type $search['wild']
          * @param string $search expects to contain fieldnames of table or view
+         * @param array $args "paging","rowsperpage","offset"
          * @return array|Exception
          */
-	public function searchModel ( $search );
+	public function searchModel ( $search, $args );
 	
 	/** Remove all the designs linked to this model - typically used when resetting, or deleting a model 
 	* @param int $model_id 
 	*/
-	public function removeDesignsForModel ( $model_id );
+	public function deleteDesignsForModel ( $model_id );
+        
         
 
 }
@@ -170,9 +173,18 @@ interface WraprSubmodel  {
         /** add submodel "model_id, submodel_name, submodel_name_friendly */
 	public function addSubmodel ( $args );
 	
+        /** update the submodel information
+         * 
+         * @param int $submodel_id
+         * @param array $args name, active, friendly
+         */
 	public function updateSubmodel ( $submodel_id, $args );
 	
-	public function removeSubModel ( $submodel_id );
+        /** soft delete of the submodel if there are other records existing under, or hard delete if none??
+         * 
+         * @param type $submodel_id
+         */
+	public function deleteSubModel ( $submodel_id );
 	
         /** appends year to the list with a delimiter.  
          * Delimiter can be specified and that will be used to separate the years in the databasae.  The an adapter will turn it into json
@@ -189,11 +201,19 @@ interface WraprSubmodel  {
          */
         public function activateSubmodelYear ( $submodel_id, $args );
         
-        /**
+        /** get all the submodels for a model
          * @param int $model_id
          * @return array|Exception
         */
         public function getSubmodelsByModel ( $model_id );
+        
+        /** retrieve all the associated model's submodels for a year
+         * 
+         * @param int $model
+         * @param int $year
+         * @return array|Exception
+         */
+        public function getSubmodelsByYear ( $model, $year  );
         	
 }
 
@@ -378,8 +398,28 @@ interface WraprSubmodelYear {
     
 }
 
-interface WraprSubmodelYearLayer { 
+interface WraprSubmodelYearLayerExclusions { 
     
+    /**
+     * 
+     * @param array $args submodel_id, year, layer_id
+     * @return int|Exception
+     */
+    public function getSubmodelYearLayerId ( $args );
+    
+    /**
+     * 
+     * @param int $submodelYearLayerId
+     * @param int|array $color_id
+     * @return boolean|Exception
+     */
+    public function addColorToExclusions ( $submodelYearLayerId, $color_id );
+    
+    public function removeColorFromExclusions ( $submodelYearLayerId, $color_id );
+    
+    public function getExclusionsForSubmodelYearLayer ( $submodelYearLayerId );
+    
+    public function getAllExclusionsForSubmodelYear ( $submodelYearId );
     
 }
 
@@ -432,9 +472,27 @@ interface WraprDesign {
 	/** Remove one design from a linked model
 	*/
 	public function removeDesignFromModel ( $design_id, $model_id );
-	public function getAllDesigns ( );
-	public function searchDesigns ( $search );
-	public function searchDesignslJson ( $search );
+	public function getDesigns ( );
+        
+        /** search for designs by name, model, etc support paging
+         * 
+         * @param array $search [fieldname, value, "beginswith,endswith,middle"]
+         * @param array $args [paging, pages_per_row, offset, current_page]
+         */
+	public function searchDesigns ( $search, $args );
+	
+}
+
+interface WraprUserDesign {
+    
+    public function addUserDesign ();
+    
+    public function removeUserDesign ();
+    
+    public function updateUserDesignImage ();
+    
+    public function addUserDesignLayers ();
+    
 }
 
 interface WraprApp {
