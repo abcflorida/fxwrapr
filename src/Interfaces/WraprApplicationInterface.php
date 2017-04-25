@@ -61,7 +61,7 @@ interface WraprApplicationInterface {
     public function getProductUrl ( $args );
     
     public function getImagePath ( $design_id );
-    
+        
     /** Buttons include the layer group buttons, logo buttons, palette buttons, etc 
      * 
      * @param int $design_id
